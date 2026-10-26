@@ -1,0 +1,71 @@
+
+name: Build and deploy Undertale Webport
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out webport
+        uses: actions/checkout@v4
+
+      - name: Check out Butterscotch
+        uses: actions/checkout@v4
+        with:
+          repository: ButterscotchRunner/Butterscotch
+          ref: eac193381c3eec93e7d1c0ae99aa2db3c4eaebf1
+          path: runtime-src
+
+      - name: Set up Emscripten
+        uses: mymindstorm/setup-emsdk@v14
+        with:
+          version: latest
+
+      - name: Build WebAssembly runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd runtime-src
+          sed -i 's/"-sJSPI"/"-sASYNCIFY"/' CMakeLists.txt
+          sed -i '/-sJSPI_EXPORTS=/d' CMakeLists.txt
+          emcmake cmake -B build -G Ninja \
+            -DPLATFORM=web \
+            -DBACKEND=web \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=ON
+          cmake --build build --parallel 2
+          test -s build/butterscotch.mjs
+          test -s build/butterscotch.wasm
+
+      - name: Assemble website
+        run: |
+          mkdir -p dist/runtime
+          cp index.html dist/index.html
+          cp runtime-src/build/butterscotch.* dist/runtime/
+          cp runtime-src/LICENSE dist/runtime/AGPL-3.0.txt
+          touch dist/.nojekyll
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+    steps:
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v4
