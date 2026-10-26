@@ -1,0 +1,388 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#000000">
+<title>Undertale Webport</title>
+<style>
+:root {
+  color-scheme: dark;
+  --bg: #000;
+  --fg: #fff;
+  --border: #fff;
+  --yellow: #ffff00;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: "Courier New", monospace;
+}
+header {
+  padding: 12px 16px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border-bottom: 2px solid var(--border);
+}
+h1 {
+  margin: 0;
+  font-size: 20px;
+  letter-spacing: 2px;
+}
+button, input {
+  font: inherit;
+}
+button {
+  background: #000;
+  color: #fff;
+  border: 2px solid #fff;
+  padding: 9px 12px;
+  cursor: pointer;
+}
+button:hover, button:focus-visible {
+  color: #000;
+  background: #fff;
+}
+button:focus-visible, input:focus-visible {
+  outline: 2px solid var(--yellow);
+  outline-offset: 3px;
+}
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+main {
+  width: min(100%, 1000px);
+  margin: auto;
+  padding: 18px;
+}
+#game {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  min-height: 240px;
+  max-height: 70vh;
+  border: 3px solid white;
+  background: #000;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+#gameMessage {
+  text-align: center;
+  padding: 20px;
+  line-height: 1.8;
+}
+#heart {
+  color: #f22;
+  font-size: 36px;
+  animation: pulse 1s infinite alternate;
+}
+@keyframes pulse {
+  to { transform: scale(1.2); }
+}
+#hud {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  right: 8px;
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  pointer-events: none;
+}
+#fps { color: #8f8; }
+.panel {
+  margin-top: 16px;
+  border: 2px solid white;
+  padding: 14px;
+}
+.panel h2 {
+  margin-top: 0;
+  font-size: 16px;
+}
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+#saveList {
+  padding-left: 20px;
+  overflow-wrap: anywhere;
+}
+#consoleOutput {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-height: 180px;
+  overflow: auto;
+  color: #8f8;
+}
+input[type="file"] {
+  max-width: 100%;
+}
+.hint { color: #bbb; line-height: 1.6; }
+footer {
+  text-align: center;
+  color: #999;
+  padding: 24px 12px;
+  font-size: 12px;
+}
+[hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<header>
+  <h1>UNDERTALE WEBPORT</h1>
+  <div class="toolbar">
+    <button id="fullscreenBtn">Fullscreen</button>
+    <button id="consoleBtn">Console</button>
+    <button id="fpsBtn">Hide FPS</button>
+  </div>
+</header>
+
+<main>
+  <section id="game" aria-label="Game viewport">
+    <div id="hud">
+      <span>WEBPORT PREVIEW</span>
+      <span id="fps">FPS: --</span>
+    </div>
+    <div id="gameMessage">
+      <div id="heart">♥</div>
+      <h2>UNDERTALE</h2>
+      <p>DETERMINATION.</p>
+      <p class="hint">This is the webport shell.</p>
+      <p class="hint">The game runtime has not been added yet.</p>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>GAME CONTROLS</h2>
+    <p>Movement: Arrow keys or WASD</p>
+    <p>Confirm: Z or Enter</p>
+    <p>Cancel: X or Shift</p>
+    <p>Menu: C or Ctrl</p>
+    <p class="hint">These are intended controls for the future game runtime.</p>
+  </section>
+
+  <section class="panel">
+    <h2>SAVE MANAGER</h2>
+    <p class="hint">
+      Import files for safekeeping in this browser, then export them later.
+      These backups are not connected to the game yet.
+    </p>
+    <div class="row">
+      <input id="saveInput" type="file" multiple>
+      <button id="importBtn">Import files</button>
+      <button id="exportAllBtn">Export all backups</button>
+    </div>
+    <ul id="saveList"></ul>
+    <p id="saveStatus" role="status" class="hint"></p>
+  </section>
+
+  <section class="panel" id="consolePanel" hidden>
+    <h2>CONSOLE</h2>
+    <pre id="consoleOutput">Webport initialized.
+Game runtime: not installed.
+Save storage: browser localStorage.</pre>
+  </section>
+</main>
+
+<footer>
+  Fan-made browser interface prototype. Not affiliated with Toby Fox.
+</footer>
+
+<script>
+"use strict";
+
+const $ = id => document.getElementById(id);
+const STORAGE_KEY = "undertale-webport-backups-v1";
+let showFps = true;
+
+function log(message) {
+  const output = $("consoleOutput");
+  output.textContent += "\n" + message;
+  output.scrollTop = output.scrollHeight;
+}
+
+function loadSaves() {
+  try {
+    const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+    return Array.isArray(data) ? data : [];
+  } catch {
+    return [];
+  }
+}
+
+function storeSaves(saves) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(saves));
+    return true;
+  } catch {
+    $("saveStatus").textContent =
+      "Storage is full or unavailable. Export your backups first.";
+    return false;
+  }
+}
+
+function downloadFile(name, content, type = "application/octet-stream") {
+  const blob = new Blob([content], { type });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = name;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function renderSaves() {
+  const list = $("saveList");
+  list.replaceChildren();
+
+  const saves = loadSaves();
+  if (!saves.length) {
+    const item = document.createElement("li");
+    item.textContent = "No backups imported.";
+    list.appendChild(item);
+    return;
+  }
+
+  saves.forEach((save, index) => {
+    const li = document.createElement("li");
+    const name = document.createElement("span");
+    name.textContent = `${save.name} (${save.size} bytes) `;
+
+    const exportBtn = document.createElement("button");
+    exportBtn.textContent = "Export";
+    exportBtn.addEventListener("click", () => {
+      const raw = atob(save.data);
+      const bytes = Uint8Array.from(raw, c => c.charCodeAt(0));
+      const blob = new Blob([bytes]);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = save.name;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    });
+
+    const deleteBtn = document.createElement("button");
+    deleteBtn.textContent = "Delete";
+    deleteBtn.addEventListener("click", () => {
+      if (!confirm(`Delete backup "${save.name}"?`)) return;
+      const updated = loadSaves();
+      updated.splice(index, 1);
+      if (storeSaves(updated)) {
+        renderSaves();
+        $("saveStatus").textContent = "Backup deleted.";
+      }
+    });
+
+    li.append(name, exportBtn, " ", deleteBtn);
+    list.appendChild(li);
+  });
+}
+
+$("importBtn").addEventListener("click", async () => {
+  const files = [...$("saveInput").files];
+  if (!files.length) {
+    $("saveStatus").textContent = "Choose one or more files first.";
+    return;
+  }
+
+  const saves = loadSaves();
+  try {
+    for (const file of files) {
+      const bytes = new Uint8Array(await file.arrayBuffer());
+      let binary = "";
+      const chunkSize = 0x8000;
+      for (let i = 0; i < bytes.length; i += chunkSize) {
+        binary += String.fromCharCode(
+          ...bytes.subarray(i, i + chunkSize)
+        );
+      }
+
+      saves.push({
+        name: file.name,
+        size: file.size,
+        data: btoa(binary),
+        importedAt: new Date().toISOString()
+      });
+    }
+
+    if (storeSaves(saves)) {
+      $("saveStatus").textContent = `Imported ${files.length} file(s).`;
+      log(`Imported ${files.length} backup file(s).`);
+      renderSaves();
+    }
+  } catch (error) {
+    $("saveStatus").textContent =
+      "Import failed. The files may be too large for browser storage.";
+    log("Import error: " + error.message);
+  }
+});
+
+$("exportAllBtn").addEventListener("click", () => {
+  const saves = loadSaves();
+  if (!saves.length) {
+    $("saveStatus").textContent = "There are no backups to export.";
+    return;
+  }
+  downloadFile(
+    "undertale-backups.json",
+    JSON.stringify(saves, null, 2),
+    "application/json"
+  );
+  $("saveStatus").textContent = "Backup archive exported.";
+});
+
+$("fullscreenBtn").addEventListener("click", async () => {
+  const target = $("game");
+  try {
+    if (!document.fullscreenElement) {
+      await target.requestFullscreen();
+    } else {
+      await document.exitFullscreen();
+    }
+  } catch {
+    $("saveStatus").textContent = "Fullscreen is not supported here.";
+  }
+});
+
+$("consoleBtn").addEventListener("click", () => {
+  $("consolePanel").hidden = !$("consolePanel").hidden;
+});
+
+$("fpsBtn").addEventListener("click", () => {
+  showFps = !showFps;
+  $("fps").hidden = !showFps;
+  $("fpsBtn").textContent = showFps ? "Hide FPS" : "Show FPS";
+});
+
+let frames = 0;
+let lastTime = performance.now();
+
+function countFrames(now) {
+  frames++;
+  if (now - lastTime >= 1000) {
+    $("fps").textContent = "FPS: " + frames;
+    frames = 0;
+    lastTime = now;
+  }
+  requestAnimationFrame(countFrames);
+}
+requestAnimationFrame(countFrames);
+
+renderSaves();
+log("Interface ready.");
+</script>
+</body>
+</html>
