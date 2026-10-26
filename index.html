@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#000000">
 <title>Undertale Webport</title>
 <style>
@@ -11,349 +11,285 @@
   color-scheme: dark;
   --bg: #000;
   --fg: #fff;
-  --border: #fff;
-  --yellow: #ffff00;
+  --red: #f33;
+  --yellow: #ff0;
 }
 * { box-sizing: border-box; }
 body {
   margin: 0;
-  min-height: 100vh;
   background: var(--bg);
   color: var(--fg);
   font-family: "Courier New", monospace;
+  padding-bottom: env(safe-area-inset-bottom);
 }
 header {
-  padding: 12px 16px;
+  padding: 12px;
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
   gap: 10px;
-  border-bottom: 2px solid var(--border);
+  border-bottom: 2px solid white;
 }
-h1 {
-  margin: 0;
-  font-size: 20px;
-  letter-spacing: 2px;
-}
-button, input {
-  font: inherit;
-}
+h1 { font-size: 18px; letter-spacing: 2px; margin: 0; }
+button, input { font: inherit; }
 button {
-  background: #000;
-  color: #fff;
-  border: 2px solid #fff;
-  padding: 9px 12px;
+  color: white;
+  background: black;
+  border: 2px solid white;
+  padding: 10px 12px;
   cursor: pointer;
+  touch-action: manipulation;
 }
-button:hover, button:focus-visible {
-  color: #000;
-  background: #fff;
-}
+button:active { background: white; color: black; }
 button:focus-visible, input:focus-visible {
   outline: 2px solid var(--yellow);
-  outline-offset: 3px;
 }
-.toolbar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-main {
-  width: min(100%, 1000px);
-  margin: auto;
-  padding: 18px;
-}
+main { width: min(100%, 1000px); margin: auto; padding: 12px; }
 #game {
-  position: relative;
   width: 100%;
   aspect-ratio: 4 / 3;
-  min-height: 240px;
   max-height: 70vh;
+  min-height: 220px;
+  background: black;
   border: 3px solid white;
-  background: #000;
-  display: grid;
-  place-items: center;
+  position: relative;
   overflow: hidden;
 }
-#gameMessage {
+#canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  outline: none;
+  touch-action: none;
+}
+#status {
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+  color: #9f9;
+}
+#message {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
   text-align: center;
   padding: 20px;
-  line-height: 1.8;
+  background: #000;
+  line-height: 1.7;
 }
-#heart {
-  color: #f22;
-  font-size: 36px;
-  animation: pulse 1s infinite alternate;
-}
-@keyframes pulse {
-  to { transform: scale(1.2); }
-}
-#hud {
-  position: absolute;
-  top: 8px;
-  left: 8px;
-  right: 8px;
+#message[hidden] { display: none; }
+#heart { color: var(--red); font-size: 36px; }
+.panel { border: 2px solid white; padding: 14px; margin-top: 14px; }
+.panel h2 { font-size: 16px; margin-top: 0; }
+.hint { color: #bbb; line-height: 1.6; }
+.row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+input[type=file] { max-width: 100%; }
+#controls {
   display: flex;
   justify-content: space-between;
-  font-size: 12px;
-  pointer-events: none;
-}
-#fps { color: #8f8; }
-.panel {
-  margin-top: 16px;
-  border: 2px solid white;
-  padding: 14px;
-}
-.panel h2 {
-  margin-top: 0;
-  font-size: 16px;
-}
-.row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
   align-items: center;
+  gap: 18px;
+  margin-top: 14px;
+  user-select: none;
+  -webkit-user-select: none;
 }
-#saveList {
-  padding-left: 20px;
-  overflow-wrap: anywhere;
+#dpad {
+  display: grid;
+  grid-template-columns: repeat(3, 48px);
+  grid-template-rows: repeat(2, 48px);
+  gap: 5px;
 }
-#consoleOutput {
+#dpad button, #actions button {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 5px;
+  font-size: 18px;
+}
+#up { grid-column: 2; grid-row: 1; }
+#left { grid-column: 1; grid-row: 2; }
+#down { grid-column: 2; grid-row: 2; }
+#right { grid-column: 3; grid-row: 2; }
+#actions { display: flex; gap: 8px; }
+#console {
   white-space: pre-wrap;
   overflow-wrap: anywhere;
   max-height: 180px;
   overflow: auto;
-  color: #8f8;
-}
-input[type="file"] {
-  max-width: 100%;
-}
-.hint { color: #bbb; line-height: 1.6; }
-footer {
-  text-align: center;
-  color: #999;
-  padding: 24px 12px;
+  color: #9f9;
   font-size: 12px;
 }
+footer { text-align: center; padding: 20px 10px; color: #888; font-size: 12px; }
 [hidden] { display: none !important; }
+@media (max-width: 420px) {
+  header { align-items: flex-start; }
+  h1 { font-size: 15px; }
+  #dpad { grid-template-columns: repeat(3, 42px); grid-template-rows: repeat(2, 42px); }
+  #controls { gap: 8px; }
+  #actions button { font-size: 14px; }
+}
 </style>
 </head>
 <body>
 <header>
   <h1>UNDERTALE WEBPORT</h1>
-  <div class="toolbar">
+  <div class="row">
     <button id="fullscreenBtn">Fullscreen</button>
     <button id="consoleBtn">Console</button>
-    <button id="fpsBtn">Hide FPS</button>
   </div>
 </header>
 
 <main>
-  <section id="game" aria-label="Game viewport">
-    <div id="hud">
-      <span>WEBPORT PREVIEW</span>
-      <span id="fps">FPS: --</span>
-    </div>
-    <div id="gameMessage">
+  <section id="game" aria-label="Undertale game">
+    <canvas id="canvas" tabindex="0" aria-label="Game screen"></canvas>
+    <div id="message">
       <div id="heart">♥</div>
       <h2>UNDERTALE</h2>
       <p>DETERMINATION.</p>
-      <p class="hint">This is the webport shell.</p>
-      <p class="hint">The game runtime has not been added yet.</p>
+      <p id="messageText">Choose your own data.win file to begin.</p>
     </div>
   </section>
 
   <section class="panel">
-    <h2>GAME CONTROLS</h2>
-    <p>Movement: Arrow keys or WASD</p>
-    <p>Confirm: Z or Enter</p>
-    <p>Cancel: X or Shift</p>
-    <p>Menu: C or Ctrl</p>
-    <p class="hint">These are intended controls for the future game runtime.</p>
-  </section>
-
-  <section class="panel">
-    <h2>SAVE MANAGER</h2>
+    <h2>LOAD YOUR GAME</h2>
     <p class="hint">
-      Import files for safekeeping in this browser, then export them later.
-      These backups are not connected to the game yet.
+      Select the data.win file from your own Undertale installation.
+      It will be stored in this browser's private site storage, not uploaded
+      to this GitHub repository.
     </p>
     <div class="row">
-      <input id="saveInput" type="file" multiple>
-      <button id="importBtn">Import files</button>
-      <button id="exportAllBtn">Export all backups</button>
+      <input id="gameFile" type="file" accept=".win,.unx">
+      <button id="launchBtn">Load and launch</button>
     </div>
-    <ul id="saveList"></ul>
-    <p id="saveStatus" role="status" class="hint"></p>
+    <p id="status" role="status">Runtime has not been initialized.</p>
+  </section>
+
+  <section class="panel">
+    <h2>TOUCH CONTROLS</h2>
+    <p class="hint">You can also use a keyboard. Touch controls send keyboard inputs to the runtime.</p>
+    <div id="controls">
+      <div id="dpad">
+        <button id="up" data-key="ArrowUp" aria-label="Up">▲</button>
+        <button id="left" data-key="ArrowLeft" aria-label="Left">◀</button>
+        <button id="down" data-key="ArrowDown" aria-label="Down">▼</button>
+        <button id="right" data-key="ArrowRight" aria-label="Right">▶</button>
+      </div>
+      <div id="actions">
+        <button data-key="z">Z<br><small>Confirm</small></button>
+        <button data-key="x">X<br><small>Cancel</small></button>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>GAME STATUS</h2>
+    <p id="runtimeStatus" class="hint">Runtime: waiting to load.</p>
+    <p class="hint">Save files are intended to persist in browser storage. Export backups before clearing website data.</p>
   </section>
 
   <section class="panel" id="consolePanel" hidden>
     <h2>CONSOLE</h2>
-    <pre id="consoleOutput">Webport initialized.
-Game runtime: not installed.
-Save storage: browser localStorage.</pre>
+    <pre id="console">Webport initialized.
+Waiting for the runtime.</pre>
   </section>
 </main>
 
 <footer>
-  Fan-made browser interface prototype. Not affiliated with Toby Fox.
+  Fan-made project. Not affiliated with or endorsed by Toby Fox.
+  You must supply your own game files.
 </footer>
 
-<script>
+<script type="module">
 "use strict";
 
 const $ = id => document.getElementById(id);
-const STORAGE_KEY = "undertale-webport-backups-v1";
-let showFps = true;
+let runtime = null;
+let launching = false;
+let loaded = false;
 
 function log(message) {
-  const output = $("consoleOutput");
-  output.textContent += "\n" + message;
-  output.scrollTop = output.scrollHeight;
+  const box = $("console");
+  box.textContent += "\n" + message;
+  box.scrollTop = box.scrollHeight;
 }
 
-function loadSaves() {
-  try {
-    const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
-    return Array.isArray(data) ? data : [];
-  } catch {
-    return [];
-  }
+function status(message) {
+  $("status").textContent = message;
+  log(message);
 }
 
-function storeSaves(saves) {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(saves));
-    return true;
-  } catch {
-    $("saveStatus").textContent =
-      "Storage is full or unavailable. Export your backups first.";
-    return false;
-  }
+function setMessage(message) {
+  $("messageText").textContent = message;
 }
 
-function downloadFile(name, content, type = "application/octet-stream") {
-  const blob = new Blob([content], { type });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = name;
-  a.click();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
+function setKey(key, down) {
+  if (!runtime) return;
+
+  const codes = {
+    ArrowUp: 38,
+    ArrowDown: 40,
+    ArrowLeft: 37,
+    ArrowRight: 39,
+    z: 90,
+    x: 88,
+    Enter: 13,
+    Shift: 16,
+    c: 67,
+    Control: 17,
+    w: 87,
+    a: 65,
+    s: 83,
+    d: 68
+  };
+
+  const code = codes[key];
+  if (code === undefined) return;
+
+  const fn = down ? runtime._onKeyDown : runtime._onKeyUp;
+  if (typeof fn === "function") fn(code);
 }
 
-function renderSaves() {
-  const list = $("saveList");
-  list.replaceChildren();
-
-  const saves = loadSaves();
-  if (!saves.length) {
-    const item = document.createElement("li");
-    item.textContent = "No backups imported.";
-    list.appendChild(item);
-    return;
+window.addEventListener("keydown", event => {
+  if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", " "].includes(event.key)) {
+    event.preventDefault();
   }
-
-  saves.forEach((save, index) => {
-    const li = document.createElement("li");
-    const name = document.createElement("span");
-    name.textContent = `${save.name} (${save.size} bytes) `;
-
-    const exportBtn = document.createElement("button");
-    exportBtn.textContent = "Export";
-    exportBtn.addEventListener("click", () => {
-      const raw = atob(save.data);
-      const bytes = Uint8Array.from(raw, c => c.charCodeAt(0));
-      const blob = new Blob([bytes]);
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = save.name;
-      a.click();
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
-    });
-
-    const deleteBtn = document.createElement("button");
-    deleteBtn.textContent = "Delete";
-    deleteBtn.addEventListener("click", () => {
-      if (!confirm(`Delete backup "${save.name}"?`)) return;
-      const updated = loadSaves();
-      updated.splice(index, 1);
-      if (storeSaves(updated)) {
-        renderSaves();
-        $("saveStatus").textContent = "Backup deleted.";
-      }
-    });
-
-    li.append(name, exportBtn, " ", deleteBtn);
-    list.appendChild(li);
-  });
-}
-
-$("importBtn").addEventListener("click", async () => {
-  const files = [...$("saveInput").files];
-  if (!files.length) {
-    $("saveStatus").textContent = "Choose one or more files first.";
-    return;
-  }
-
-  const saves = loadSaves();
-  try {
-    for (const file of files) {
-      const bytes = new Uint8Array(await file.arrayBuffer());
-      let binary = "";
-      const chunkSize = 0x8000;
-      for (let i = 0; i < bytes.length; i += chunkSize) {
-        binary += String.fromCharCode(
-          ...bytes.subarray(i, i + chunkSize)
-        );
-      }
-
-      saves.push({
-        name: file.name,
-        size: file.size,
-        data: btoa(binary),
-        importedAt: new Date().toISOString()
-      });
-    }
-
-    if (storeSaves(saves)) {
-      $("saveStatus").textContent = `Imported ${files.length} file(s).`;
-      log(`Imported ${files.length} backup file(s).`);
-      renderSaves();
-    }
-  } catch (error) {
-    $("saveStatus").textContent =
-      "Import failed. The files may be too large for browser storage.";
-    log("Import error: " + error.message);
-  }
+  setKey(event.key.length === 1 ? event.key.toLowerCase() : event.key, true);
 });
 
-$("exportAllBtn").addEventListener("click", () => {
-  const saves = loadSaves();
-  if (!saves.length) {
-    $("saveStatus").textContent = "There are no backups to export.";
-    return;
-  }
-  downloadFile(
-    "undertale-backups.json",
-    JSON.stringify(saves, null, 2),
-    "application/json"
-  );
-  $("saveStatus").textContent = "Backup archive exported.";
+window.addEventListener("keyup", event => {
+  setKey(event.key.length === 1 ? event.key.toLowerCase() : event.key, false);
+});
+
+document.querySelectorAll("[data-key]").forEach(button => {
+  const key = button.dataset.key;
+
+  const down = event => {
+    event.preventDefault();
+    button.setPointerCapture?.(event.pointerId);
+    setKey(key, true);
+  };
+
+  const up = event => {
+    event.preventDefault();
+    setKey(key, false);
+  };
+
+  button.addEventListener("pointerdown", down);
+  button.addEventListener("pointerup", up);
+  button.addEventListener("pointercancel", up);
+  button.addEventListener("lostpointercapture", up);
+  button.addEventListener("contextmenu", event => event.preventDefault());
 });
 
 $("fullscreenBtn").addEventListener("click", async () => {
-  const target = $("game");
   try {
     if (!document.fullscreenElement) {
-      await target.requestFullscreen();
+      await $("game").requestFullscreen();
     } else {
       await document.exitFullscreen();
     }
   } catch {
-    $("saveStatus").textContent = "Fullscreen is not supported here.";
+    status("Fullscreen is unavailable in this browser. Try opening the site in Safari.");
   }
 });
 
@@ -361,28 +297,140 @@ $("consoleBtn").addEventListener("click", () => {
   $("consolePanel").hidden = !$("consolePanel").hidden;
 });
 
-$("fpsBtn").addEventListener("click", () => {
-  showFps = !showFps;
-  $("fps").hidden = !showFps;
-  $("fpsBtn").textContent = showFps ? "Hide FPS" : "Show FPS";
+async function getRuntime() {
+  if (runtime) return runtime;
+
+  status("Loading the WebAssembly runtime...");
+
+  const { default: createButterscotch } =
+    await import("./runtime/butterscotch.mjs");
+
+  runtime = await createButterscotch({
+    canvas: $("canvas"),
+    print: message => log(String(message)),
+    printErr: message => log("ERROR: " + String(message)),
+    locateFile: file => "./runtime/" + file
+  });
+
+  if (typeof runtime._mountOpfs !== "function" ||
+      typeof runtime._startRunner !== "function") {
+    throw new Error("The runtime is missing required launch functions.");
+  }
+
+  status("Runtime loaded. Persistent storage is ready to initialize.");
+
+  return runtime;
+}
+
+function allocateArguments(mod, args) {
+  const strings = args.map(arg => mod.stringToNewUTF8(arg));
+  const pointer = mod._malloc(strings.length * 4);
+
+  if (!pointer) throw new Error("Could not allocate runtime arguments.");
+
+  strings.forEach((stringPointer, index) => {
+    mod.HEAPU32[(pointer >> 2) + index] = stringPointer;
+  });
+
+  return {
+    pointer,
+    strings,
+    count: strings.length
+  };
+}
+
+$("launchBtn").addEventListener("click", async () => {
+  if (launching) return;
+
+  const file = $("gameFile").files?.[0];
+
+  if (!loaded && !file) {
+    status("Choose your data.win file first.");
+    return;
+  }
+
+  launching = true;
+  $("launchBtn").disabled = true;
+
+  try {
+    const mod = await getRuntime();
+
+    if (!loaded) {
+      if (typeof mod.ccall !== "function") {
+        throw new Error("Runtime C-call interface is unavailable.");
+      }
+
+      status("Initializing persistent browser storage...");
+
+      const mountResult = await mod.ccall(
+        "mountOpfs",
+        "number",
+        [],
+        [],
+        { async: true }
+      );
+
+      if (mountResult !== 0) {
+        throw new Error("Could not initialize persistent storage.");
+      }
+
+      const bytes = new Uint8Array(await file.arrayBuffer());
+
+      if (!bytes.length) {
+        throw new Error("The selected game file is empty.");
+      }
+
+      mod.FS.writeFile("/butterscotch/data.win", bytes);
+
+      status("Game file stored privately in this browser.");
+
+      loaded = true;
+      $("gameFile").disabled = true;
+      $("launchBtn").textContent = "Game loaded";
+    }
+
+    $("message").hidden = true;
+    $("runtimeStatus").textContent = "Runtime starting...";
+
+    const args = [
+      "--save-folder",
+      "/butterscotch/saves",
+      "/butterscotch/data.win"
+    ];
+
+    const allocated = allocateArguments(mod, args);
+
+    try {
+      status("Starting the game runtime...");
+
+      const result = await mod.ccall(
+        "startRunner",
+        "number",
+        ["number", "number"],
+        [allocated.count, allocated.pointer],
+        { async: true }
+      );
+
+      log("Runtime returned: " + result);
+    } finally {
+      allocated.strings.forEach(pointer => mod._free(pointer));
+      mod._free(allocated.pointer);
+    }
+  } catch (error) {
+    const message = error?.stack || error?.message || String(error);
+    status("Could not launch: " + message);
+    $("message").hidden = false;
+    setMessage("The runtime could not start. Open Console for details.");
+    $("runtimeStatus").textContent = "Runtime error — check Console.";
+    $("consolePanel").hidden = false;
+  } finally {
+    launching = false;
+    $("launchBtn").disabled = false;
+  }
 });
 
-let frames = 0;
-let lastTime = performance.now();
-
-function countFrames(now) {
-  frames++;
-  if (now - lastTime >= 1000) {
-    $("fps").textContent = "FPS: " + frames;
-    frames = 0;
-    lastTime = now;
-  }
-  requestAnimationFrame(countFrames);
-}
-requestAnimationFrame(countFrames);
-
-renderSaves();
 log("Interface ready.");
+log("Runtime files are loaded from /runtime/.");
 </script>
 </body>
 </html>
