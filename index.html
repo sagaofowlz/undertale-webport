@@ -7,18 +7,12 @@
 <meta name="theme-color" content="#000000">
 <title>Undertale Webport</title>
 <style>
-:root {
-  color-scheme: dark;
-  --bg: #000;
-  --fg: #fff;
-  --red: #f33;
-  --yellow: #ff0;
-}
+:root { color-scheme: dark; }
 * { box-sizing: border-box; }
 body {
   margin: 0;
-  background: var(--bg);
-  color: var(--fg);
+  background: #000;
+  color: #fff;
   font-family: "Courier New", monospace;
   padding-bottom: env(safe-area-inset-bottom);
 }
@@ -42,9 +36,6 @@ button {
   touch-action: manipulation;
 }
 button:active { background: white; color: black; }
-button:focus-visible, input:focus-visible {
-  outline: 2px solid var(--yellow);
-}
 main { width: min(100%, 1000px); margin: auto; padding: 12px; }
 #game {
   width: 100%;
@@ -60,14 +51,14 @@ main { width: min(100%, 1000px); margin: auto; padding: 12px; }
   display: block;
   width: 100%;
   height: 100%;
-  outline: none;
   touch-action: none;
 }
-#status {
-  line-height: 1.6;
-  overflow-wrap: anywhere;
-  color: #9f9;
-}
+.panel { border: 2px solid white; padding: 14px; margin-top: 14px; }
+.panel h2 { font-size: 16px; margin-top: 0; }
+.hint { color: #bbb; line-height: 1.6; }
+.row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+input[type=file] { max-width: 100%; }
+#status { color: #9f9; overflow-wrap: anywhere; line-height: 1.6; }
 #message {
   position: absolute;
   inset: 0;
@@ -79,32 +70,26 @@ main { width: min(100%, 1000px); margin: auto; padding: 12px; }
   line-height: 1.7;
 }
 #message[hidden] { display: none; }
-#heart { color: var(--red); font-size: 36px; }
-.panel { border: 2px solid white; padding: 14px; margin-top: 14px; }
-.panel h2 { font-size: 16px; margin-top: 0; }
-.hint { color: #bbb; line-height: 1.6; }
-.row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
-input[type=file] { max-width: 100%; }
+#heart { color: #f33; font-size: 36px; }
 #controls {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 18px;
-  margin-top: 14px;
+  gap: 12px;
+  margin-top: 12px;
   user-select: none;
   -webkit-user-select: none;
 }
 #dpad {
   display: grid;
-  grid-template-columns: repeat(3, 48px);
-  grid-template-rows: repeat(2, 48px);
+  grid-template-columns: repeat(3, 46px);
+  grid-template-rows: repeat(2, 46px);
   gap: 5px;
 }
 #dpad button, #actions button {
   min-width: 44px;
   min-height: 44px;
   padding: 5px;
-  font-size: 18px;
 }
 #up { grid-column: 2; grid-row: 1; }
 #left { grid-column: 1; grid-row: 2; }
@@ -114,7 +99,7 @@ input[type=file] { max-width: 100%; }
 #console {
   white-space: pre-wrap;
   overflow-wrap: anywhere;
-  max-height: 180px;
+  max-height: 240px;
   overflow: auto;
   color: #9f9;
   font-size: 12px;
@@ -122,11 +107,8 @@ input[type=file] { max-width: 100%; }
 footer { text-align: center; padding: 20px 10px; color: #888; font-size: 12px; }
 [hidden] { display: none !important; }
 @media (max-width: 420px) {
-  header { align-items: flex-start; }
   h1 { font-size: 15px; }
-  #dpad { grid-template-columns: repeat(3, 42px); grid-template-rows: repeat(2, 42px); }
-  #controls { gap: 8px; }
-  #actions button { font-size: 14px; }
+  #dpad { grid-template-columns: repeat(3, 40px); grid-template-rows: repeat(2, 40px); }
 }
 </style>
 </head>
@@ -140,8 +122,8 @@ footer { text-align: center; padding: 20px 10px; color: #888; font-size: 12px; }
 </header>
 
 <main>
-  <section id="game" aria-label="Undertale game">
-    <canvas id="canvas" tabindex="0" aria-label="Game screen"></canvas>
+  <section id="game" aria-label="Game viewport">
+    <canvas id="canvas" tabindex="0"></canvas>
     <div id="message">
       <div id="heart">♥</div>
       <h2>UNDERTALE</h2>
@@ -153,26 +135,26 @@ footer { text-align: center; padding: 20px 10px; color: #888; font-size: 12px; }
   <section class="panel">
     <h2>LOAD YOUR GAME</h2>
     <p class="hint">
-      Select the data.win file from your own Undertale installation.
-      It will be stored in this browser's private site storage, not uploaded
-      to this GitHub repository.
+      Choose data.win from your own Undertale installation.
+      The file is stored in this browser's site storage and is not uploaded
+      to GitHub.
     </p>
     <div class="row">
       <input id="gameFile" type="file" accept=".win,.unx">
       <button id="launchBtn">Load and launch</button>
     </div>
-    <p id="status" role="status">Runtime has not been initialized.</p>
+    <p id="status" role="status">Runtime not loaded.</p>
   </section>
 
   <section class="panel">
     <h2>TOUCH CONTROLS</h2>
-    <p class="hint">You can also use a keyboard. Touch controls send keyboard inputs to the runtime.</p>
+    <p class="hint">Keyboard: arrows/WASD, Z or Enter to confirm, X or Shift to cancel.</p>
     <div id="controls">
       <div id="dpad">
-        <button id="up" data-key="ArrowUp" aria-label="Up">▲</button>
-        <button id="left" data-key="ArrowLeft" aria-label="Left">◀</button>
-        <button id="down" data-key="ArrowDown" aria-label="Down">▼</button>
-        <button id="right" data-key="ArrowRight" aria-label="Right">▶</button>
+        <button id="up" data-key="ArrowUp">▲</button>
+        <button id="left" data-key="ArrowLeft">◀</button>
+        <button id="down" data-key="ArrowDown">▼</button>
+        <button id="right" data-key="ArrowRight">▶</button>
       </div>
       <div id="actions">
         <button data-key="z">Z<br><small>Confirm</small></button>
@@ -182,21 +164,19 @@ footer { text-align: center; padding: 20px 10px; color: #888; font-size: 12px; }
   </section>
 
   <section class="panel">
-    <h2>GAME STATUS</h2>
-    <p id="runtimeStatus" class="hint">Runtime: waiting to load.</p>
-    <p class="hint">Save files are intended to persist in browser storage. Export backups before clearing website data.</p>
+    <h2>STATUS</h2>
+    <p id="runtimeStatus" class="hint">Waiting for runtime.</p>
   </section>
 
   <section class="panel" id="consolePanel" hidden>
     <h2>CONSOLE</h2>
-    <pre id="console">Webport initialized.
-Waiting for the runtime.</pre>
+    <pre id="console">Webport initialized.</pre>
   </section>
 </main>
 
 <footer>
-  Fan-made project. Not affiliated with or endorsed by Toby Fox.
-  You must supply your own game files.
+  Fan-made project, not affiliated with Toby Fox.
+  Supply your own game files.
 </footer>
 
 <script type="module">
@@ -205,12 +185,13 @@ Waiting for the runtime.</pre>
 const $ = id => document.getElementById(id);
 let runtime = null;
 let launching = false;
-let loaded = false;
+let fileStored = false;
+let storageMounted = false;
 
 function log(message) {
-  const box = $("console");
-  box.textContent += "\n" + message;
-  box.scrollTop = box.scrollHeight;
+  const output = $("console");
+  output.textContent += "\n" + String(message);
+  output.scrollTop = output.scrollHeight;
 }
 
 function status(message) {
@@ -218,31 +199,128 @@ function status(message) {
   log(message);
 }
 
-function setMessage(message) {
-  $("messageText").textContent = message;
+function describeError(error) {
+  return [
+    error?.name,
+    error?.message,
+    error?.stack
+  ].filter(Boolean).join("\n");
 }
 
-function setKey(key, down) {
-  if (!runtime) return;
+async function getRuntime() {
+  if (runtime) return runtime;
 
-  const codes = {
-    ArrowUp: 38,
-    ArrowDown: 40,
-    ArrowLeft: 37,
-    ArrowRight: 39,
-    z: 90,
-    x: 88,
-    Enter: 13,
-    Shift: 16,
-    c: 67,
-    Control: 17,
-    w: 87,
-    a: 65,
-    s: 83,
-    d: 68
+  status("Loading WebAssembly runtime...");
+
+  const { default: createButterscotch } =
+    await import("./runtime/butterscotch.mjs");
+
+  runtime = await createButterscotch({
+    canvas: $("canvas"),
+    print: text => log(text),
+    printErr: text => log("Runtime error: " + text),
+    locateFile: file => new URL("./runtime/" + file, import.meta.url).href
+  });
+
+  for (const name of ["_malloc", "_free", "_mountOpfs", "_startRunner"]) {
+    if (typeof runtime[name] !== "function") {
+      throw new Error("Runtime function is not exported: " + name);
+    }
+  }
+
+  if (typeof runtime.setValue !== "function" ||
+      typeof runtime.stringToNewUTF8 !== "function" ||
+      typeof runtime.ccall !== "function") {
+    throw new Error("Required Emscripten JavaScript helpers are missing.");
+  }
+
+  status("Runtime loaded.");
+  return runtime;
+}
+
+async function mountStorage(mod) {
+  if (storageMounted) return;
+
+  status("Initializing persistent browser storage...");
+
+  const result = await mod.ccall(
+    "mountOpfs",
+    "number",
+    [],
+    [],
+    { async: true }
+  );
+
+  if (result !== 0) {
+    throw new Error("OPFS mount failed with result " + result);
+  }
+
+  storageMounted = true;
+  log("Persistent storage mounted.");
+}
+
+function makeArgv(mod, args) {
+  const stringPointers = [];
+  let argvPointer = 0;
+
+  try {
+    for (const arg of args) {
+      stringPointers.push(mod.stringToNewUTF8(arg));
+    }
+
+    argvPointer = mod._malloc(stringPointers.length * 4);
+
+    if (!argvPointer) {
+      throw new Error("Could not allocate the argument pointer array.");
+    }
+
+    // IMPORTANT: HEAPU32 is not exported by our current build.
+    // setValue is exported and writes a 32-bit pointer into WASM memory.
+    for (let i = 0; i < stringPointers.length; i++) {
+      mod.setValue(
+        argvPointer + i * 4,
+        stringPointers[i],
+        "i32"
+      );
+    }
+
+    return {
+      pointer: argvPointer,
+      count: stringPointers.length,
+      free() {
+        for (const pointer of stringPointers) {
+          mod._free(pointer);
+        }
+        if (argvPointer) mod._free(argvPointer);
+        argvPointer = 0;
+        stringPointers.length = 0;
+      }
+    };
+  } catch (error) {
+    for (const pointer of stringPointers) {
+      try { mod._free(pointer); } catch {}
+    }
+    if (argvPointer) {
+      try { mod._free(argvPointer); } catch {}
+    }
+    throw error;
+  }
+}
+
+function keyCode(key) {
+  const keys = {
+    ArrowUp: 38, ArrowDown: 40,
+    ArrowLeft: 37, ArrowRight: 39,
+    z: 90, x: 88, Enter: 13,
+    Shift: 16, c: 67, Control: 17,
+    w: 87, a: 65, s: 83, d: 68
   };
+  return keys[key];
+}
 
-  const code = codes[key];
+function sendKey(key, down) {
+  if (!runtime) return;
+  const code = keyCode(key);
   if (code === undefined) return;
 
   const fn = down ? runtime._onKeyDown : runtime._onKeyUp;
@@ -250,35 +328,52 @@ function setKey(key, down) {
 }
 
 window.addEventListener("keydown", event => {
+  const key = event.key.length === 1
+    ? event.key.toLowerCase()
+    : event.key;
+
   if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", " "].includes(event.key)) {
     event.preventDefault();
   }
-  setKey(event.key.length === 1 ? event.key.toLowerCase() : event.key, true);
+
+  sendKey(key, true);
 });
 
 window.addEventListener("keyup", event => {
-  setKey(event.key.length === 1 ? event.key.toLowerCase() : event.key, false);
+  const key = event.key.length === 1
+    ? event.key.toLowerCase()
+    : event.key;
+
+  sendKey(key, false);
 });
 
 document.querySelectorAll("[data-key]").forEach(button => {
   const key = button.dataset.key;
 
-  const down = event => {
+  button.addEventListener("pointerdown", event => {
     event.preventDefault();
-    button.setPointerCapture?.(event.pointerId);
-    setKey(key, true);
+    try { button.setPointerCapture(event.pointerId); } catch {}
+    sendKey(key, true);
+  });
+
+  const release = event => {
+    event.preventDefault();
+    sendKey(key, false);
   };
 
-  const up = event => {
-    event.preventDefault();
-    setKey(key, false);
-  };
-
-  button.addEventListener("pointerdown", down);
-  button.addEventListener("pointerup", up);
-  button.addEventListener("pointercancel", up);
-  button.addEventListener("lostpointercapture", up);
+  button.addEventListener("pointerup", release);
+  button.addEventListener("pointercancel", release);
+  button.addEventListener("lostpointercapture", release);
   button.addEventListener("contextmenu", event => event.preventDefault());
+});
+
+window.addEventListener("blur", () => {
+  for (const key of [
+    "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight",
+    "z", "x", "Enter", "Shift", "w", "a", "s", "d"
+  ]) {
+    sendKey(key, false);
+  }
 });
 
 $("fullscreenBtn").addEventListener("click", async () => {
@@ -288,8 +383,8 @@ $("fullscreenBtn").addEventListener("click", async () => {
     } else {
       await document.exitFullscreen();
     }
-  } catch {
-    status("Fullscreen is unavailable in this browser. Try opening the site in Safari.");
+  } catch (error) {
+    status("Fullscreen unavailable: " + (error.message || error));
   }
 });
 
@@ -297,54 +392,12 @@ $("consoleBtn").addEventListener("click", () => {
   $("consolePanel").hidden = !$("consolePanel").hidden;
 });
 
-async function getRuntime() {
-  if (runtime) return runtime;
-
-  status("Loading the WebAssembly runtime...");
-
-  const { default: createButterscotch } =
-    await import("./runtime/butterscotch.mjs");
-
-  runtime = await createButterscotch({
-    canvas: $("canvas"),
-    print: message => log(String(message)),
-    printErr: message => log("ERROR: " + String(message)),
-    locateFile: file => "./runtime/" + file
-  });
-
-  if (typeof runtime._mountOpfs !== "function" ||
-      typeof runtime._startRunner !== "function") {
-    throw new Error("The runtime is missing required launch functions.");
-  }
-
-  status("Runtime loaded. Persistent storage is ready to initialize.");
-
-  return runtime;
-}
-
-function allocateArguments(mod, args) {
-  const strings = args.map(arg => mod.stringToNewUTF8(arg));
-  const pointer = mod._malloc(strings.length * 4);
-
-  if (!pointer) throw new Error("Could not allocate runtime arguments.");
-
-  strings.forEach((stringPointer, index) => {
-    mod.HEAPU32[(pointer >> 2) + index] = stringPointer;
-  });
-
-  return {
-    pointer,
-    strings,
-    count: strings.length
-  };
-}
-
 $("launchBtn").addEventListener("click", async () => {
   if (launching) return;
 
   const file = $("gameFile").files?.[0];
 
-  if (!loaded && !file) {
+  if (!fileStored && !file) {
     status("Choose your data.win file first.");
     return;
   }
@@ -352,45 +405,30 @@ $("launchBtn").addEventListener("click", async () => {
   launching = true;
   $("launchBtn").disabled = true;
 
+  let allocated = null;
+
   try {
     const mod = await getRuntime();
+    await mountStorage(mod);
 
-    if (!loaded) {
-      if (typeof mod.ccall !== "function") {
-        throw new Error("Runtime C-call interface is unavailable.");
-      }
-
-      status("Initializing persistent browser storage...");
-
-      const mountResult = await mod.ccall(
-        "mountOpfs",
-        "number",
-        [],
-        [],
-        { async: true }
-      );
-
-      if (mountResult !== 0) {
-        throw new Error("Could not initialize persistent storage.");
-      }
+    if (!fileStored) {
+      status("Reading selected game file...");
 
       const bytes = new Uint8Array(await file.arrayBuffer());
 
       if (!bytes.length) {
-        throw new Error("The selected game file is empty.");
+        throw new Error("The selected file is empty.");
       }
 
       mod.FS.writeFile("/butterscotch/data.win", bytes);
 
-      status("Game file stored privately in this browser.");
-
-      loaded = true;
+      fileStored = true;
       $("gameFile").disabled = true;
-      $("launchBtn").textContent = "Game loaded";
+      log("Game file stored in browser site storage.");
     }
 
     $("message").hidden = true;
-    $("runtimeStatus").textContent = "Runtime starting...";
+    $("runtimeStatus").textContent = "Starting runtime...";
 
     const args = [
       "--save-folder",
@@ -398,32 +436,39 @@ $("launchBtn").addEventListener("click", async () => {
       "/butterscotch/data.win"
     ];
 
-    const allocated = allocateArguments(mod, args);
+    allocated = makeArgv(mod, args);
 
-    try {
-      status("Starting the game runtime...");
+    status("Starting Butterscotch...");
 
-      const result = await mod.ccall(
-        "startRunner",
-        "number",
-        ["number", "number"],
-        [allocated.count, allocated.pointer],
-        { async: true }
-      );
+    // startRunner expects (argc, argv), not a list of JS strings.
+    const result = await mod.ccall(
+      "startRunner",
+      "number",
+      ["number", "number"],
+      [allocated.count, allocated.pointer],
+      { async: true }
+    );
 
-      log("Runtime returned: " + result);
-    } finally {
-      allocated.strings.forEach(pointer => mod._free(pointer));
-      mod._free(allocated.pointer);
-    }
+    log("Runner returned: " + result);
+    $("runtimeStatus").textContent = "Runner exited.";
   } catch (error) {
-    const message = error?.stack || error?.message || String(error);
-    status("Could not launch: " + message);
+    const details = describeError(error);
+    log("LAUNCH FAILURE:\n" + details);
+    $("status").textContent = "Launch failed. See Console for details.";
+    $("runtimeStatus").textContent = "Launch failed.";
     $("message").hidden = false;
-    setMessage("The runtime could not start. Open Console for details.");
-    $("runtimeStatus").textContent = "Runtime error — check Console.";
+    $("messageText").textContent = "Runtime failed to start. Open Console.";
     $("consolePanel").hidden = false;
   } finally {
+    if (allocated) {
+      try {
+        allocated.free();
+        log("Runtime arguments cleaned up.");
+      } catch (error) {
+        log("Argument cleanup warning: " + describeError(error));
+      }
+    }
+
     launching = false;
     $("launchBtn").disabled = false;
   }
