@@ -33,8 +33,6 @@ jobs:
         run: |
           set -euo pipefail
           cd runtime-src
-          sed -i 's/"-sJSPI"/"-sASYNCIFY"/' CMakeLists.txt
-          sed -i '/-sJSPI_EXPORTS=/d' CMakeLists.txt
           emcmake cmake -B build -G Ninja \
             -DPLATFORM=web \
             -DBACKEND=web \
